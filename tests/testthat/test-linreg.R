@@ -41,18 +41,16 @@ test_that("summary() method works", {
   expect_output(summary(linreg_mod), "Residual standard error: 0.6[0-9]* on 147 degrees of freedom")
 })
 
-test_that("results match lm() for both methods", {
+test_that("QR results match lm()", {
   f <- Petal.Length ~ Species + Sepal.Width
   ref <- lm(f, data = iris)
-  for (m in c("qr", "ols")) {
-    mod <- linreg(f, data = iris, method = m)
-    expect_equal(coef(mod), coef(ref))
-    expect_equal(unname(pred(mod)), unname(fitted(ref)))
-    expect_equal(unname(mod$std_error),
-                 unname(summary(ref)$coefficients[, "Std. Error"]))
-    expect_equal(unname(mod$p_values),
-                 unname(summary(ref)$coefficients[, "Pr(>|t|)"]))
-  }
+  mod <- linreg(f, data = iris)
+  expect_equal(coef(mod), coef(ref))
+  expect_equal(unname(pred(mod)), unname(fitted(ref)))
+  expect_equal(unname(mod$std_error),
+               unname(summary(ref)$coefficients[, "Std. Error"]))
+  expect_equal(unname(mod$p_values),
+               unname(summary(ref)$coefficients[, "Pr(>|t|)"]))
 })
 
 test_that("plot() returns two ggplot objects", {

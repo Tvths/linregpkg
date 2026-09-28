@@ -1,0 +1,83 @@
+---
+title: "Using linregpkg"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using linregpkg}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(linregpkg)
+```
+
+`linregpkg` fits a multiple linear regression using the QR decomposition of
+the design matrix. The result is an object of class `linreg`, with methods for
+printing and summarising the fit, extracting coefficients, residuals and
+predicted values, and drawing diagnostic plots.
+
+## Fit a model
+
+We use the built-in `iris` dataset to model petal length as a function of
+sepal width and sepal length:
+
+```{r fit-model}
+model <- linreg(
+  Petal.Length ~ Sepal.Width + Sepal.Length,
+  data = iris
+)
+```
+
+The function takes exactly two arguments: a formula and a data frame. It
+returns the estimates and model statistics in a `linreg` object.
+
+## Print the fitted coefficients
+
+`print()` displays the model call and named coefficient estimates:
+
+```{r print-model}
+print(model)
+```
+
+## Extract coefficients
+
+`coef()` returns the estimates as a named numeric vector:
+
+```{r coefficients}
+coef(model)
+```
+
+## Inspect residuals and predictions
+
+`resid()` returns the residuals, while `pred()` returns the fitted values:
+
+```{r residuals-and-predictions}
+head(resid(model))
+head(pred(model))
+```
+
+The standard `residuals()` generic is also supported:
+
+```{r residuals-generic}
+head(residuals(model))
+```
+
+## Summarise the fit
+
+`summary()` reports coefficient estimates, standard errors, t-values and
+p-values, followed by the residual standard error and residual degrees of
+freedom:
+
+```{r model-summary}
+summary(model)
+```
+
+## Diagnostic plots
+
+`plot()` draws Residuals vs Fitted and Scale-Location diagnostic plots using
+`ggplot2`:
+
+```{r diagnostic-plots, fig.width=7, fig.height=5}
+plot(model)
+```

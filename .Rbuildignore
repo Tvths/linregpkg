@@ -1,3 +1,6 @@
 ^linregpkg\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^\.github$
+^doc$
+^Meta$

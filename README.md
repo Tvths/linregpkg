@@ -1,7 +1,7 @@
 # linregpkg
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/Tvths/linregpkg/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Tvths/linregpkg/actions/workflows/R-CMD-check.yaml)
+[![R CMD check](https://github.com/Tvths/linregpkg/actions/workflows/r.yml/badge.svg)](https://github.com/Tvths/linregpkg/actions/workflows/r.yml)
 <!-- badges: end -->
 
 `linregpkg` is an R package for fitting multiple linear regression models.
@@ -45,6 +45,9 @@ The following methods are available for `linreg` objects:
 ``` r
 print(mod)
 summary(mod)
+coef(mod)
+head(resid(mod))
+head(pred(mod))
 plot(mod)
 ```
 
@@ -69,8 +72,8 @@ browseVignettes("linregpkg")
 
 ## Authors
 
-- Viet Tien Trinh ([@Tvths](https://github.com/Tvths))
-- Zhengyu Wang ([@wwwzyccc777](https://github.com/wwwzyccc777))
+- Viet Tien Trinh — LiU ID: `vietr933` — GitHub: [@Tvths](https://github.com/Tvths)
+- Zhengyu Wang — LiU ID: `zhewa470` — GitHub: [@wwwzyccc777](https://github.com/wwwzyccc777)
 
 ## License
 

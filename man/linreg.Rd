@@ -4,21 +4,19 @@
 \alias{linreg}
 \title{Multiple linear regression}
 \usage{
-linreg(formula, data, method = c("qr", "ols"))
+linreg(formula, data)
 }
 \arguments{
 \item{formula}{An object of class \code{formula}, e.g. \code{y ~ x1 + x2}.}
 
 \item{data}{A \code{data.frame} containing the variables in \code{formula}.}
-
-\item{method}{Estimation method, either \code{"qr"} (default) or \code{"ols"}.}
 }
 \value{
 An object of class \code{linreg}: a list with elements
 \code{coefficients}, \code{fitted_values}, \code{residuals}, \code{df},
 \code{sigma2}, \code{var_beta}, \code{std_error}, \code{t_values},
-\code{p_values}, \code{hat_values}, \code{formula}, \code{data_name},
-\code{method} and \code{call}.
+\code{p_values}, \code{hat_values}, \code{formula}, \code{data_name}
+and \code{call}.
 }
 \description{
 Fits a multiple linear regression model and returns an object of S3 class
@@ -27,16 +25,10 @@ Fits a multiple linear regression model and returns an object of S3 class
 picked out with \code{\link{all.vars}}.
 }
 \details{
-Two estimation methods are available:
-\describe{
-\item{\code{"qr"} (default)}{With \eqn{X = QR},
+The coefficients and their variance are computed with a QR decomposition
+of the design matrix. With \eqn{X = QR},
 \eqn{\hat{\beta} = R^{-1} Q^T y} and
-\eqn{\widehat{Var}(\hat{\beta}) = \hat{\sigma}^2 (R^T R)^{-1}},
-since \eqn{X^T X = R^T Q^T Q R = R^T R}.}
-\item{\code{"ols"}}{Ordinary linear algebra:
-\eqn{\hat{\beta} = (X^T X)^{-1} X^T y} and
-\eqn{\widehat{Var}(\hat{\beta}) = \hat{\sigma}^2 (X^T X)^{-1}}.}
-}
+\eqn{\widehat{Var}(\hat{\beta}) = \hat{\sigma}^2 (R^T R)^{-1}}.
 
 From the estimates the function computes fitted values
 \eqn{\hat{y} = X\hat{\beta}}, residuals \eqn{\hat{e} = y - \hat{y}},
