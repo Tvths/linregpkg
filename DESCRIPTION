@@ -3,7 +3,7 @@ Type: Package
 Title: Multiple Linear Regression Using the QR Decomposition
 Version: 0.1.0
 Authors@R: c(
-    person("Viet Tien", "Trinh", email = "vietr933@student.liu.se", role = c("cre", "aut"))
+    person("Viet Tien", "Trinh", email = "vietr933@student.liu.se", role = c("cre", "aut")),
     person("Zhengyu", "Wang", email = "zhewa470@student.liu.se", role = "aut")
   )
 Description: Fits multiple linear regression models using the QR
