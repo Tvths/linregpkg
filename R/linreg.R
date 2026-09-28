@@ -5,16 +5,10 @@
 #' \code{\link[stats]{model.matrix}} and the dependent variable \eqn{y} is
 #' picked out with \code{\link{all.vars}}.
 #'
-#' Two estimation methods are available:
-#' \describe{
-#'   \item{\code{"qr"} (default)}{With \eqn{X = QR},
-#'     \eqn{\hat{\beta} = R^{-1} Q^T y} and
-#'     \eqn{\widehat{Var}(\hat{\beta}) = \hat{\sigma}^2 (R^T R)^{-1}},
-#'     since \eqn{X^T X = R^T Q^T Q R = R^T R}.}
-#'   \item{\code{"ols"}}{Ordinary linear algebra:
-#'     \eqn{\hat{\beta} = (X^T X)^{-1} X^T y} and
-#'     \eqn{\widehat{Var}(\hat{\beta}) = \hat{\sigma}^2 (X^T X)^{-1}}.}
-#' }
+#' The coefficients and their variance are computed with a QR decomposition
+#' of the design matrix. With \eqn{X = QR},
+#' \eqn{\hat{\beta} = R^{-1} Q^T y} and
+#' \eqn{\widehat{Var}(\hat{\beta}) = \hat{\sigma}^2 (R^T R)^{-1}}.
 #'
 #' From the estimates the function computes fitted values
 #' \eqn{\hat{y} = X\hat{\beta}}, residuals \eqn{\hat{e} = y - \hat{y}},
@@ -25,13 +19,11 @@
 #'
 #' @param formula An object of class \code{formula}, e.g. \code{y ~ x1 + x2}.
 #' @param data A \code{data.frame} containing the variables in \code{formula}.
-#' @param method Estimation method, either \code{"qr"} (default) or \code{"ols"}.
-#'
 #' @return An object of class \code{linreg}: a list with elements
 #'   \code{coefficients}, \code{fitted_values}, \code{residuals}, \code{df},
 #'   \code{sigma2}, \code{var_beta}, \code{std_error}, \code{t_values},
-#'   \code{p_values}, \code{hat_values}, \code{formula}, \code{data_name},
-#'   \code{method} and \code{call}.
+#'   \code{p_values}, \code{hat_values}, \code{formula}, \code{data_name}
+#'   and \code{call}.
 #'
 #' @examples
 #' mod <- linreg(Petal.Length ~ Species, data = iris)
@@ -45,7 +37,7 @@
 #'
 #' @importFrom stats model.matrix pt
 #' @export
-linreg <- function(formula, data, method = c("qr", "ols")) {
+linreg <- function(formula, data) {
   # ---- Input checks -------------------------------------------------------
   if (!inherits(formula, "formula")) {
     stop("'formula' must be an object of class 'formula'.")
@@ -53,7 +45,6 @@ linreg <- function(formula, data, method = c("qr", "ols")) {
   if (!is.data.frame(data)) {
     stop("'data' must be a data.frame.")
   }
-  method <- match.arg(method)
   vars <- all.vars(formula)
   missing_vars <- setdiff(vars[vars != "."], names(data))
   if (length(missing_vars) > 0) {
@@ -74,24 +65,18 @@ linreg <- function(formula, data, method = c("qr", "ols")) {
   if (df <= 0) stop("Not enough observations: n must be larger than p.")
 
   # ---- Estimation ---------------------------------------------------------
-  if (method == "qr") {
-    qr_X <- qr(X)
-    if (qr_X$rank < p) stop("The design matrix X is rank deficient.")
-    Q <- qr.Q(qr_X)
-    R <- qr.R(qr_X)
-    piv <- qr_X$pivot
+  qr_X <- qr(X)
+  if (qr_X$rank < p) stop("The design matrix X is rank deficient.")
+  Q <- qr.Q(qr_X)
+  R <- qr.R(qr_X)
+  piv <- qr_X$pivot
 
-    beta <- numeric(p)
-    beta[piv] <- backsolve(R, crossprod(Q, y))   # R beta = Q^T y
-    R_inv <- backsolve(R, diag(p))               # R^{-1}
-    XtX_inv <- matrix(0, p, p)
-    XtX_inv[piv, piv] <- R_inv %*% t(R_inv)      # (R^T R)^{-1}
-    hat_values <- rowSums(Q^2)                   # diag(Q Q^T)
-  } else {
-    XtX_inv <- solve(t(X) %*% X)
-    beta <- as.vector(XtX_inv %*% t(X) %*% y)
-    hat_values <- rowSums((X %*% XtX_inv) * X)   # diag(X (X^T X)^{-1} X^T)
-  }
+  beta <- numeric(p)
+  beta[piv] <- backsolve(R, crossprod(Q, y))   # R beta = Q^T y
+  R_inv <- backsolve(R, diag(p))               # R^{-1}
+  XtX_inv <- matrix(0, p, p)
+  XtX_inv[piv, piv] <- R_inv %*% t(R_inv)      # (R^T R)^{-1}
+  hat_values <- rowSums(Q^2)                   # diag(Q Q^T)
   names(beta) <- colnames(X)
 
   # ---- Statistics ---------------------------------------------------------
@@ -118,7 +103,6 @@ linreg <- function(formula, data, method = c("qr", "ols")) {
       hat_values    = hat_values,
       formula       = formula,
       data_name     = data_name,
-      method        = method,
       call          = match.call()
     ),
     class = "linreg"
