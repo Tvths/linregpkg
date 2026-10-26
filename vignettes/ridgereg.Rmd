@@ -1,0 +1,96 @@
+---
+title: "Predictive modelling with ridgereg and caret"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Predictive modelling with ridgereg and caret}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup, message = FALSE}
+library(linregpkg)
+library(caret)
+library(mlbench)
+data("BostonHousing")
+```
+
+## 1. Training and test data
+
+We use 80 % of the observations for training and 20 % for testing.
+
+```{r}
+set.seed(12345)
+train_idx <- createDataPartition(BostonHousing$medv, p = 0.8, list = FALSE)
+train_data <- BostonHousing[train_idx, ]
+test_data  <- BostonHousing[-train_idx, ]
+ctrl <- trainControl(method = "cv", number = 10)
+```
+
+## 2. Linear regression and forward selection
+
+```{r}
+lm_fit <- train(medv ~ ., data = train_data, method = "lm", trControl = ctrl)
+
+# 13 covariates -> allow models with 1, ..., 13 covariates
+fwd_fit <- train(medv ~ ., data = train_data, method = "leapForward",
+                 tuneGrid = data.frame(nvmax = 1:13), trControl = ctrl)
+fwd_fit$results[, c("nvmax", "RMSE", "Rsquared")]
+fwd_fit$bestTune
+```
+
+The table above shows that cross-validation compares models with 1 up to all
+13 covariates (if `tuneGrid` is not given, caret only tries `nvmax` = 2, 3, 4,
+which does not satisfy the requirement). The intercept-only model (0 covariates) is not part of the
+`leapForward` grid, so we compare it by hand: its RMSE is simply the standard
+deviation of `medv`, which is much larger than for any of the models above.
+
+```{r}
+sd(train_data$medv)
+```
+
+## 3. Performance on the training data
+
+```{r}
+rmse <- function(y, yhat) sqrt(mean((y - yhat)^2))
+data.frame(
+  model = c("lm", "forward selection"),
+  train_RMSE = c(rmse(train_data$medv, predict(lm_fit, train_data)),
+                 rmse(train_data$medv, predict(fwd_fit, train_data)))
+)
+```
+
+## 4–5. Ridge regression, tuning lambda with 10-fold CV
+
+`ridgereg_caret()` makes our `ridgereg()` usable as a custom caret model.
+
+```{r}
+ridge_fit <- train(medv ~ ., data = train_data, method = ridgereg_caret(),
+                   tuneGrid = data.frame(lambda = seq(0, 30, by = 1)),
+                   trControl = ctrl)
+ridge_fit$bestTune
+plot(ridge_fit)
+```
+
+## 6. Performance on the test data
+
+```{r}
+test_res <- data.frame(
+  model = c("lm", "forward selection", "ridgereg"),
+  test_RMSE = c(rmse(test_data$medv, predict(lm_fit, test_data)),
+                rmse(test_data$medv, predict(fwd_fit, test_data)),
+                rmse(test_data$medv, predict(ridge_fit, test_data)))
+)
+test_res
+```
+
+## Conclusions
+
+The three models give similar test RMSE. Forward selection uses fewer
+covariates, and ridge regression shrinks the coefficients towards zero; with
+only 13 covariates and more than 400 observations there is little
+overfitting, so the optimal penalty is small and the gain from ridge
+regression over ordinary least squares is modest.
