@@ -4,46 +4,33 @@
 [![R CMD check](https://github.com/Tvths/linregpkg/actions/workflows/r.yml/badge.svg)](https://github.com/Tvths/linregpkg/actions/workflows/r.yml)
 <!-- badges: end -->
 
-`linregpkg` is an R package for fitting multiple linear regression models.
-The model is estimated with linear algebra, using the QR decomposition of the
-design matrix, and the results are stored in an object of class `linreg`
-with methods for printing, plotting and summarising the fit.
+`linregpkg` is an R package for multiple linear regression and ridge regression.
+`linreg()` estimates linear models with a QR decomposition. `ridgereg()` fits
+ridge models with standardized predictors and an unpenalized intercept; its
+default implementation uses an augmented QR decomposition. The package also
+provides S3 methods, a `caret` tuning interface, and an airport-delay
+visualization.
 
-The package was developed as part of Computer Lab 4 in the course
+The package was developed for Computer Lab 4 and the Bonus Computer Lab in
 **732A94 Advanced R Programming** at Linköping University.
 
 ## Installation
 
-Install the development version from GitHub with:
+Install the development version from GitHub:
 
-``` r
+```r
 # install.packages("devtools")
 devtools::install_github("Tvths/linregpkg", build_vignettes = TRUE)
 ```
 
-## Usage
+## Linear regression
 
-Fit a model with `linreg()`, which takes a `formula` and a `data.frame`:
+Fit a model with `linreg()` using a formula and a data frame:
 
-``` r
+```r
 library(linregpkg)
 
 mod <- linreg(Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
-```
-
-The following methods are available for `linreg` objects:
-
-| Method          | Description                                                        |
-|-----------------|--------------------------------------------------------------------|
-| `print(mod)`    | Prints the call and the estimated coefficients                     |
-| `summary(mod)`  | Coefficients with standard errors, t-values, p-values, σ̂ and df   |
-| `coef(mod)`     | Returns the coefficients as a named vector                         |
-| `resid(mod)`    | Returns the residuals                                              |
-| `pred(mod)`     | Returns the fitted values                                          |
-| `plot(mod)`     | Residuals vs Fitted and Scale-Location plots (ggplot2)             |
-
-``` r
-print(mod)
 summary(mod)
 coef(mod)
 head(resid(mod))
@@ -51,24 +38,71 @@ head(pred(mod))
 plot(mod)
 ```
 
-## Method
+`linreg` objects support `print()`, `summary()`, `coef()`, `resid()`, `pred()`
+and `plot()`.
 
-For a model **y = Xβ + ε**, the design matrix is decomposed as **X = QR**,
-where Q has orthonormal columns and R is upper triangular. The coefficients
-are obtained by solving **Rβ̂ = Qᵀy**, and the variance of the estimates is
+## Ridge regression
 
-**Var(β̂) = σ̂² (RᵀR)⁻¹**, with **σ̂² = eᵀe / (n − p)**.
+`ridgereg()` takes a formula, data frame, and penalty `lambda`. Predictors are
+standardized before fitting and the intercept is not penalized. The default
+`method = "qr"` uses an augmented QR decomposition; `method = "ls"` is also
+available.
 
-This is numerically more stable than computing (XᵀX)⁻¹ directly.
+```r
+ridge_mod <- ridgereg(
+  Petal.Length ~ Sepal.Width + Sepal.Length,
+  data = iris,
+  lambda = 1
+)
 
-## Vignette
+print(ridge_mod)
+coef(ridge_mod)
+predict(ridge_mod)
+predict(ridge_mod, newdata = iris[1:5, ])
+```
 
-A walkthrough of the package on the `iris` dataset is available as a
-vignette:
+`ridgereg` objects support `print()`, `coef()` and `predict()`. `predict()`
+returns fitted values by default and can predict on a new data frame.
 
-``` r
+To tune `lambda` with 10-fold cross-validation using `caret`:
+
+```r
+cv_fit <- caret::train(
+  Petal.Length ~ Sepal.Width + Sepal.Length,
+  data = iris,
+  method = ridgereg_caret(),
+  tuneGrid = data.frame(lambda = c(0, 1, 10)),
+  trControl = caret::trainControl(method = "cv", number = 10)
+)
+cv_fit$bestTune
+```
+
+## Airport-delay visualization
+
+`visualize_airport_delays()` uses `nycflights13` data to plot destination
+airports by longitude and latitude. Point colour shows mean arrival delay and
+point size shows the number of flights.
+
+```r
+delay_plot <- visualize_airport_delays()
+print(delay_plot)
+```
+
+## Vignettes and tests
+
+The package includes an introduction to `linreg()` and a predictive-modelling
+vignette for `ridgereg()`. The latter uses the BostonHousing data to compare
+linear regression, forward selection, and ridge regression, tuning `lambda`
+with 10-fold cross-validation and evaluating the models on a held-out test set.
+
+Open the installed vignettes with:
+
+```r
 browseVignettes("linregpkg")
 ```
+
+The test suite compares ridge coefficients with `MASS::lm.ridge()` and covers
+prediction, input validation, model methods, and the airport-delay plot.
 
 ## Authors
 
@@ -77,4 +111,4 @@ browseVignettes("linregpkg")
 
 ## License
 
-MIT © linregpkg authors
+MIT

@@ -1,17 +1,20 @@
 Package: linregpkg
 Type: Package
-Title: Multiple Linear Regression Using the QR Decomposition
-Version: 0.1.0
+Title: Linear and Ridge Regression with QR Decomposition
+Version: 0.2.0
 Authors@R: c(
-    person("Viet Tien", "Trinh", email = "vietr933@student.liu.se", role = c("cre", "aut")),
-    person("Zhengyu", "Wang", email = "zhewa470@student.liu.se", role = "aut")
+    person("Viet Tien", "Trinh", email = "vietr933@student.liu.se",
+           role = c("cre", "aut"),
+           comment = c(LiU = "vietr933", GitHub = "Tvths")),
+    person("Zhengyu", "Wang", email = "zhewa470@student.liu.se",
+           role = "aut",
+           comment = c(LiU = "zhewa470", GitHub = "wwwzyccc777"))
   )
-Description: Fits multiple linear regression models using the QR
-    decomposition of the design matrix. The fitted model is returned as an
-    object of class 'linreg' with methods for printing, summarising,
-    extracting coefficients, residuals and fitted values, and plotting
-    diagnostic plots with 'ggplot2'. Developed for the course 732A94
-    Advanced R Programming at Linkoping University.
+Description: Provides formula-based functions for multiple linear and ridge
+    regression. The ridge estimator standardizes predictors, centers the
+    response, and supports computation with an augmented QR decomposition.
+    Includes S3 methods, a caret tuning interface, an airport-delay
+    visualization, and predictive-modelling vignettes.
 License: MIT + file LICENSE
 URL: https://github.com/Tvths/linregpkg
 BugReports: https://github.com/Tvths/linregpkg/issues
@@ -24,8 +27,8 @@ Imports:
     stats
 Suggests:
     caret,
-    knitr,
     leaps,
+    knitr,
     MASS,
     mlbench,
     rmarkdown,
